@@ -7,18 +7,18 @@ export const TRACK_COLORS: Record<
 > = {
   media: {
     solid: "bg-blue-500",
-    background: "bg-blue-500/20",
-    border: "border-white/80",
+    background: "",
+    border: "",
   },
   text: {
-    solid: "bg-[#9C4937]",
-    background: "bg-[#9C4937]",
-    border: "border-white/80",
+    solid: "bg-[#5DBAA0]",
+    background: "bg-[#5DBAA0]",
+    border: "",
   },
   audio: {
     solid: "bg-green-500",
-    background: "bg-green-500/20",
-    border: "border-white/80",
+    background: "bg-[#915DBE]",
+    border: "",
   },
 } as const;
 
@@ -34,7 +34,7 @@ export function getTrackElementClasses(type: TrackType) {
 
 // Track height definitions
 export const TRACK_HEIGHTS: Record<TrackType, number> = {
-  media: 65,
+  media: 60,
   text: 25,
   audio: 50,
 } as const;
@@ -76,20 +76,15 @@ export const TIMELINE_CONSTANTS = {
   DEFAULT_TEXT_DURATION: 5,
   DEFAULT_IMAGE_DURATION: 5,
   ZOOM_LEVELS: [0.25, 0.5, 1, 1.5, 2, 3, 4],
-  ZOOM_LEVEL_MIN: 0.1,
-  ZOOM_LEVEL_MAX: 10,
-  ZOOM_STEP_BASE: 0.15,
-  MAX_ZOOM_STEP: 66,
-  ZOOM_STEP: 1,
 } as const;
 
 // FPS presets for project settings
 export const FPS_PRESETS = [
-  { value: "24", label: "24 fps (Film)" },
-  { value: "25", label: "25 fps (PAL)" },
-  { value: "30", label: "30 fps (NTSC)" },
-  { value: "60", label: "60 fps (High)" },
-  { value: "120", label: "120 fps (Slow-mo)" },
+  { value: "24", label: "24 fps" },
+  { value: "25", label: "25 fps" },
+  { value: "30", label: "30 fps" },
+  { value: "60", label: "60 fps" },
+  { value: "120", label: "120 fps" },
 ] as const;
 
 // Frame snapping utilities

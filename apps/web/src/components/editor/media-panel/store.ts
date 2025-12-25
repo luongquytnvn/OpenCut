@@ -9,28 +9,30 @@ import {
   SlidersHorizontalIcon,
   LucideIcon,
   TypeIcon,
+  SettingsIcon,
 } from "lucide-react";
 import { create } from "zustand";
 
 export type Tab =
   | "media"
-  | "audio"
+  | "sounds"
   | "text"
   | "stickers"
   | "effects"
   | "transitions"
   | "captions"
   | "filters"
-  | "adjustment";
+  | "adjustment"
+  | "settings";
 
 export const tabs: { [key in Tab]: { icon: LucideIcon; label: string } } = {
   media: {
     icon: VideoIcon,
     label: "Media",
   },
-  audio: {
+  sounds: {
     icon: MusicIcon,
-    label: "Audio",
+    label: "Sounds",
   },
   text: {
     icon: TypeIcon,
@@ -60,14 +62,25 @@ export const tabs: { [key in Tab]: { icon: LucideIcon; label: string } } = {
     icon: SlidersHorizontalIcon,
     label: "Adjustment",
   },
+  settings: {
+    icon: SettingsIcon,
+    label: "Settings",
+  },
 };
 
 interface MediaPanelStore {
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
+  highlightMediaId: string | null;
+  requestRevealMedia: (mediaId: string) => void;
+  clearHighlight: () => void;
 }
 
 export const useMediaPanelStore = create<MediaPanelStore>((set) => ({
   activeTab: "media",
   setActiveTab: (tab) => set({ activeTab: tab }),
+  highlightMediaId: null,
+  requestRevealMedia: (mediaId) =>
+    set({ activeTab: "media", highlightMediaId: mediaId }),
+  clearHighlight: () => set({ highlightMediaId: null }),
 }));

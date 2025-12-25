@@ -12,18 +12,23 @@ import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlaybackStore } from "@/stores/playback-store";
+import { DragData } from "@/types/timeline";
 
 export interface DraggableMediaItemProps {
   name: string;
   preview: ReactNode;
-  dragData: Record<string, any>;
+  dragData: DragData;
   onDragStart?: (e: React.DragEvent) => void;
   onAddToTimeline?: (currentTime: number) => void;
   aspectRatio?: number;
   className?: string;
+  containerClassName?: string;
   showPlusOnDrag?: boolean;
   showLabel?: boolean;
   rounded?: boolean;
+  variant?: "card" | "compact";
+  isDraggable?: boolean;
+  isHighlighted?: boolean;
 }
 
 export function DraggableMediaItem({
@@ -34,14 +39,21 @@ export function DraggableMediaItem({
   onAddToTimeline,
   aspectRatio = 16 / 9,
   className = "",
+  containerClassName,
   showPlusOnDrag = true,
   showLabel = true,
   rounded = true,
+  variant = "card",
+  isDraggable = true,
+  isHighlighted = false,
 }: DraggableMediaItemProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const dragRef = useRef<HTMLDivElement>(null);
-  const currentTime = usePlaybackStore((state) => state.currentTime);
+  const currentTime = isDraggable
+    ? usePlaybackStore((state) => state.currentTime)
+    : 0;
+  const highlightClassName = "ring-2 ring-primary rounded-sm bg-primary/10";
 
   const handleAddToTimeline = () => {
     onAddToTimeline?.(currentTime);
@@ -88,49 +100,83 @@ export function DraggableMediaItem({
 
   return (
     <>
-      <div ref={dragRef} className="relative group w-28 h-28">
+      {variant === "card" ? (
         <div
-          className={`flex flex-col gap-1 p-0 h-auto w-full relative cursor-default ${className}`}
+          ref={dragRef}
+          className={cn("relative group", containerClassName ?? "w-28 h-28")}
         >
-          <AspectRatio
-            ratio={aspectRatio}
+          <div
             className={cn(
-              "bg-accent relative overflow-hidden",
-              rounded && "rounded-md",
-              "[&::-webkit-drag-ghost]:opacity-0" // Webkit-specific ghost hiding
+              "flex flex-col gap-1 p-1 h-auto w-full relative cursor-default",
+              className,
+              isHighlighted && highlightClassName
             )}
-            draggable={true}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
           >
-            {preview}
-            {!isDragging && (
-              <PlusButton
-                className="opacity-0 group-hover:opacity-100"
-                onClick={handleAddToTimeline}
-              />
-            )}
-          </AspectRatio>
-          {showLabel && (
-            <span
-              className="text-[0.7rem] text-muted-foreground truncate w-full text-left"
-              aria-label={name}
-              title={name}
+            <AspectRatio
+              ratio={aspectRatio}
+              className={cn(
+                "bg-panel-accent relative overflow-hidden",
+                rounded && "rounded-md",
+                isDraggable && "[&::-webkit-drag-ghost]:opacity-0" // Webkit-specific ghost hiding
+              )}
+              draggable={isDraggable}
+              onDragStart={isDraggable ? handleDragStart : undefined}
+              onDragEnd={isDraggable ? handleDragEnd : undefined}
             >
-              {name.length > 8
-                ? `${name.slice(0, 16)}...${name.slice(-3)}`
-                : name}
-            </span>
-          )}
+              {preview}
+              {!isDragging && (
+                <PlusButton
+                  className="opacity-0 group-hover:opacity-100"
+                  onClick={handleAddToTimeline}
+                />
+              )}
+            </AspectRatio>
+            {showLabel && (
+              <span
+                className="text-[0.7rem] text-muted-foreground truncate w-full text-left"
+                aria-label={name}
+                title={name}
+              >
+                {name.length > 8
+                  ? `${name.slice(0, 16)}...${name.slice(-3)}`
+                  : name}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div
+          ref={dragRef}
+          className={cn(
+            "relative group w-full",
+            isHighlighted && highlightClassName
+          )}
+        >
+          <div
+            className={cn(
+              "h-8 flex items-center gap-3 cursor-default w-full px-1",
+              isDraggable && "[&::-webkit-drag-ghost]:opacity-0",
+              className
+            )}
+            draggable={isDraggable}
+            onDragStart={isDraggable ? handleDragStart : undefined}
+            onDragEnd={isDraggable ? handleDragEnd : undefined}
+          >
+            <div className="w-6 h-6 flex-shrink-0 rounded-[0.35rem] overflow-hidden">
+              {preview}
+            </div>
+            <span className="text-sm truncate flex-1 w-full">{name}</span>
+          </div>
+        </div>
+      )}
 
       {/* Custom drag preview */}
-      {isDragging &&
+      {isDraggable &&
+        isDragging &&
         typeof document !== "undefined" &&
         createPortal(
           <div
-            className="fixed pointer-events-none z-[9999]"
+            className="fixed pointer-events-none z-9999"
             style={{
               left: dragPosition.x - 40, // Center the preview (half of 80px)
               top: dragPosition.y - 40, // Center the preview (half of 80px)
@@ -139,7 +185,7 @@ export function DraggableMediaItem({
             <div className="w-[80px]">
               <AspectRatio
                 ratio={1}
-                className="relative rounded-md overflow-hidden shadow-2xl ring ring-primary"
+                className="relative rounded-md overflow-hidden shadow-2xl ring-3 ring-primary"
               >
                 <div className="w-full h-full [&_img]:w-full [&_img]:h-full [&_img]:object-cover [&_img]:rounded-none">
                   {preview}
@@ -171,7 +217,10 @@ function PlusButton({
   const button = (
     <Button
       size="icon"
-      className={cn("absolute bottom-2 right-2 size-4", className)}
+      className={cn(
+        "absolute bottom-2 right-2 size-5 bg-background hover:bg-panel text-foreground",
+        className
+      )}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -179,7 +228,7 @@ function PlusButton({
       }}
       title={tooltipText}
     >
-      <Plus className="!size-3" />
+      <Plus className="size-4!" />
     </Button>
   );
 

@@ -51,7 +51,7 @@ export function RenameProjectDialog({
             }
           }}
           placeholder="Enter a new name"
-          className="mt-4"
+          className="mt-0 bg-background border-2 border-border"
         />
 
         <DialogFooter>

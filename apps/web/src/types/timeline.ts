@@ -1,6 +1,5 @@
-import { MediaType } from "@/stores/media-store";
+import { MediaType } from "@/types/media";
 import { generateUUID } from "@/lib/utils";
-import { ReactNode } from "react";
 
 export type TrackType = "media" | "text" | "audio";
 
@@ -12,12 +11,14 @@ interface BaseTimelineElement {
   startTime: number;
   trimStart: number;
   trimEnd: number;
+  hidden?: boolean;
 }
 
 // Media element that references MediaStore
 export interface MediaElement extends BaseTimelineElement {
   type: "media";
   mediaId: string;
+  muted?: boolean;
 }
 
 // Text element with embedded text data
@@ -90,13 +91,19 @@ export interface TimelineTrack {
 
 export function sortTracksByOrder(tracks: TimelineTrack[]): TimelineTrack[] {
   return [...tracks].sort((a, b) => {
+    // Text tracks always go to the top
+    if (a.type === "text" && b.type !== "text") return -1;
+    if (b.type === "text" && a.type !== "text") return 1;
+
     // Audio tracks always go to bottom
     if (a.type === "audio" && b.type !== "audio") return 1;
     if (b.type === "audio" && a.type !== "audio") return -1;
 
-    // Main track goes above audio but below other tracks
-    if (a.isMain && !b.isMain && b.type !== "audio") return 1;
-    if (b.isMain && !a.isMain && a.type !== "audio") return -1;
+    // Main track goes above audio but below text tracks
+    if (a.isMain && !b.isMain && b.type !== "audio" && b.type !== "text")
+      return 1;
+    if (b.isMain && !a.isMain && a.type !== "audio" && a.type !== "text")
+      return -1;
 
     // Within same category, maintain creation order
     return 0;
@@ -133,7 +140,8 @@ export function canElementGoOnTrack(
 ): boolean {
   if (elementType === "text") {
     return trackType === "text";
-  } else if (elementType === "media") {
+  }
+  if (elementType === "media") {
     return trackType === "media" || trackType === "audio";
   }
   return false;
@@ -155,23 +163,4 @@ export function validateElementTrackCompatibility(
   }
 
   return { isValid: true };
-}
-
-export interface TimelineTick {
-  left: number;
-  label?: string;
-  isMajor?: boolean;
-}
-
-export interface TimelineCanvasRulerWrapperProps {
-  children: ReactNode;
-  onMouseDown?: (e: React.MouseEvent<HTMLDivElement>) => void;
-  className?: string;
-}
-
-export interface TimelineCanvasRulerProps {
-  zoomLevel: number;
-  duration: number;
-  width: number;
-  height?: number;
 }

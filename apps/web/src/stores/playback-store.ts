@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import type { PlaybackState, PlaybackControls } from "@/types/playback";
+import { useTimelineStore } from "@/stores/timeline-store";
+import { DEFAULT_FPS, useProjectStore } from "./project-store";
 
 interface PlaybackStore extends PlaybackState, PlaybackControls {
   setDuration: (duration: number) => void;
@@ -20,13 +22,33 @@ const startTimer = (store: () => PlaybackStore) => {
       lastUpdate = now;
 
       const newTime = state.currentTime + delta * state.speed;
-      if (newTime >= state.duration) {
-        // When video completes, pause and reset playhead to start
+
+      // Get actual content duration from timeline store
+      const actualContentDuration = useTimelineStore
+        .getState()
+        .getTotalDuration();
+
+      // Stop at actual content end, not timeline duration (which has 10s minimum)
+      // It was either this or reducing default min timeline to 1 second
+      const effectiveDuration =
+        actualContentDuration > 0 ? actualContentDuration : state.duration;
+
+      if (newTime >= effectiveDuration) {
+        // When content completes, pause just before the end so we can see the last frame
+        const projectFps = useProjectStore.getState().activeProject?.fps;
+        if (!projectFps)
+          console.error("Project FPS is not set, assuming " + DEFAULT_FPS + "fps");
+
+        const frameOffset = 1 / (projectFps ?? DEFAULT_FPS); // Stop 1 frame before end based on project FPS
+        const stopTime = Math.max(0, effectiveDuration - frameOffset);
+
         state.pause();
-        state.setCurrentTime(0);
-        // Notify video elements to sync with reset
+        state.setCurrentTime(stopTime);
+        // Notify video elements to sync with end position
         window.dispatchEvent(
-          new CustomEvent("playback-seek", { detail: { time: 0 } })
+          new CustomEvent("playback-seek", {
+            detail: { time: stopTime },
+          })
         );
       } else {
         state.setCurrentTime(newTime);
@@ -60,6 +82,24 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
   speed: 1.0,
 
   play: () => {
+    const state = get();
+
+    const actualContentDuration = useTimelineStore
+      .getState()
+      .getTotalDuration();
+    const effectiveDuration =
+      actualContentDuration > 0 ? actualContentDuration : state.duration;
+
+    if (effectiveDuration > 0) {
+      const fps = useProjectStore.getState().activeProject?.fps ?? DEFAULT_FPS;
+      const frameOffset = 1 / fps;
+      const endThreshold = Math.max(0, effectiveDuration - frameOffset);
+
+      if (state.currentTime >= endThreshold) {
+        get().seek(0);
+      }
+    }
+
     set({ isPlaying: true });
     startTimer(get);
   },

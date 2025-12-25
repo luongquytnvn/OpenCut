@@ -2,27 +2,11 @@
 
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { RiDiscordFill, RiGithubLine, RiTwitterXLine } from "react-icons/ri";
-import { getStars } from "@/lib/fetch-github-stars";
+import { RiDiscordFill, RiTwitterXLine } from "react-icons/ri";
+import { FaGithub } from "react-icons/fa6";
 import Image from "next/image";
 
 export function Footer() {
-  const [star, setStar] = useState<string>();
-
-  useEffect(() => {
-    const fetchStars = async () => {
-      try {
-        const data = await getStars();
-        setStar(data);
-      } catch (err) {
-        console.error("Failed to fetch GitHub stars", err);
-      }
-    };
-
-    fetchStars();
-  }, []);
-
   return (
     <motion.footer
       className="bg-background border-t"
@@ -35,7 +19,13 @@ export function Footer() {
           {/* Brand Section */}
           <div className="md:col-span-1 max-w-sm">
             <div className="flex justify-start items-center gap-2 mb-4">
-              <Image src="/logo.svg" alt="OpenCut" width={24} height={24} />
+              <Image 
+                src="/logo.svg" 
+                alt="OpenCut" 
+                width={24} 
+                height={24}
+                className="invert dark:invert-0"
+              />
               <span className="font-bold text-lg">OpenCut</span>
             </div>
             <p className="text-sm md:text-left text-muted-foreground mb-5">
@@ -49,7 +39,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <RiGithubLine className="h-5 w-5" />
+                <FaGithub className="h-5 w-5" />
               </Link>
               <Link
                 href="https://x.com/OpenCutApp"

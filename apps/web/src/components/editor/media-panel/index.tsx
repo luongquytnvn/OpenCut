@@ -4,21 +4,20 @@ import { TabBar } from "./tabbar";
 import { MediaView } from "./views/media";
 import { useMediaPanelStore, Tab } from "./store";
 import { TextView } from "./views/text";
+import { SoundsView } from "./views/sounds";
+import { StickersView } from "./views/stickers";
+import { Separator } from "@/components/ui/separator";
+import { SettingsView } from "./views/settings";
+import { Captions } from "./views/captions";
 
 export function MediaPanel() {
   const { activeTab } = useMediaPanelStore();
 
   const viewMap: Record<Tab, React.ReactNode> = {
     media: <MediaView />,
-    audio: (
-      <div className="p-4 text-muted-foreground">Audio view coming soon...</div>
-    ),
+    sounds: <SoundsView />,
     text: <TextView />,
-    stickers: (
-      <div className="p-4 text-muted-foreground">
-        Stickers view coming soon...
-      </div>
-    ),
+    stickers: <StickersView />,
     effects: (
       <div className="p-4 text-muted-foreground">
         Effects view coming soon...
@@ -29,11 +28,7 @@ export function MediaPanel() {
         Transitions view coming soon...
       </div>
     ),
-    captions: (
-      <div className="p-4 text-muted-foreground">
-        Captions view coming soon...
-      </div>
-    ),
+    captions: <Captions />,
     filters: (
       <div className="p-4 text-muted-foreground">
         Filters view coming soon...
@@ -44,12 +39,14 @@ export function MediaPanel() {
         Adjustment view coming soon...
       </div>
     ),
+    settings: <SettingsView />,
   };
 
   return (
-    <div className="h-full flex flex-col bg-panel rounded-sm overflow-hidden">
+    <div className="h-full flex bg-panel">
       <TabBar />
-      <div className="flex-1">{viewMap[activeTab]}</div>
+      <Separator orientation="vertical" />
+      <div className="flex-1 overflow-hidden">{viewMap[activeTab]}</div>
     </div>
   );
 }

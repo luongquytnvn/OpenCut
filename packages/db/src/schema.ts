@@ -4,9 +4,7 @@ export const users = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified")
-    .default(false)
-    .notNull(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
   createdAt: timestamp("created_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
@@ -60,10 +58,13 @@ export const verifications = pgTable("verifications", {
   ),
 }).enableRLS();
 
-export const waitlist = pgTable("waitlist", {
+export const exportWaitlist = pgTable("export_waitlist", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   createdAt: timestamp("created_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
-}).enableRLS(); 
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+}).enableRLS();
